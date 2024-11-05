@@ -3,7 +3,7 @@ from tkinter import *
 from functools import partial
 
 ''' A list of tuple pairs that correspond with display and its actual value'''
-button_layout = [
+button_layout: list[tuple] = [
     ('x^a', '**'), ('|÷|', '//'), ('%', '%'), ('C', 'C'),
     ('7', 7), ('8', 8), ('9', 9), ('÷', '/'),
     ('4', 4), ('5', 5), ('6', 6), ('*', '*'),
@@ -26,20 +26,20 @@ result_display = Label(
 )
 result_display.grid(row = 0, column = 0, columnspan = 4)      # column span determines the width of the label
 
-row, col, stack = 0, 0, []                                    # initializing variables for buttons and the stack used for calculations and storing data
+row, col = 0, 0                                    # initializing variables for buttons and the stack used for calculations and storing data
 
-
-def operate(arg):                                             # ** this function runs the operations
-    if arg == '=':                                            # **first check if button is equal sign**
-        result = eval(''.join([str(item) for item in stack]))   # turn every item  in the stack into a string then use eval function and set as the result
-        stack.clear()                                           # remove all items in stack   
-        stack.append(result)                                    # append the result as the only item in the stack(so that you can continue operating numbers on the answer)
-    else:                                                     # **if the button is a number, an operation, or clear**
-        stack.append(arg) if arg != 'C' else stack.clear()      # append the item if it's not the clear button else remove all items from stack
-
-    ds = ''.join([str(item) for item in stack])               # -> ds := display string converts all items into a string so that join function can be used to turn into a string
-    ''' if there was no str(item), it would cause an error if the stack had an int as .join() expects string instances'''
-    result_display.config(text = ds if stack else '0')        # display the string if there is an item in a stack else just display 0
+def operate(arg):
+    '''current display := 
+        get the text of display and check if the first letter is 0, if it is...
+        splice the string to remove the 0 by getting the next letter'''
+    current_display = str(result_display.cget('text')) if str(result_display.cget('text'))[0] != '0' else str(result_display.cget('text'))[1:]
+    if arg == '=':
+        result_display.config(text = eval(current_display))     # evaluate the string and show the result
+    elif arg == 'C':
+        result_display.config(text = '0')                       # set the result equal to 0
+    else:
+        current_display += str(arg)                             # add the new input from the button onto the current text in the dispay
+        result_display.config(text = current_display)
 
 
 for (display, value) in button_layout: #creating a button from the list of tuples. dv := display value, av := actual value
@@ -51,7 +51,6 @@ for (display, value) in button_layout: #creating a button from the list of tuple
         font = ("Century Gothic", 15), 
         fg = 'white', 
         bg = '#505050' if isinstance(value, int) or value in '=.' else '#acacac' if value != 'C' else '#FF9500').grid(row = row + 1, column = col)
-    
     row = (row + 1) if col == 3 else row    # short way of going to the next row if the last button added was on the last row, else just stay as the same value
     col = (col + 1) if col != 3 else 0      # keep going right until you've hit the max row then go back to 0
 
